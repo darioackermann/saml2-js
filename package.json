@@ -26,7 +26,7 @@
     "url": "https://github.com/darioackermann/saml2-js/issues"
   },
   "devDependencies": {
-    "coffeescript": "^1.12.7",
+    "coffeescript": "^2.7.0",
     "mocha": "^8.4.0",
     "nyc": "^15.0.0"
   },
