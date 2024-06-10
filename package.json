@@ -28,7 +28,7 @@
   "devDependencies": {
     "coffeescript": "^1.12.7",
     "mocha": "^10.4.0",
-    "nyc": "^15.1.0"
+    "nyc": "^17.0.0"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.10",
