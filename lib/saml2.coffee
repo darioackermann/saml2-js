@@ -440,7 +440,10 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
       # Validate the signature
       debug result
       if ignore_signature
-        return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION)
+        try
+          return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION)
+        catch parseError
+          return cb_wf parseError
 
       saml_response_str = saml_response.toString()
       for cert, i in idp_certificates or []
@@ -452,7 +455,10 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
           continue # Cert was not valid, try the next one
 
         for sd in signed_data
-          signed_dom = (new xmldom.DOMParser()).parseFromString(sd, xmldom.MIME_TYPE.XML_APPLICATION)
+          try
+            signed_dom = (new xmldom.DOMParser()).parseFromString(sd, xmldom.MIME_TYPE.XML_APPLICATION)
+          catch parseError
+            return cb_wf parseError
 
           assertion = signed_dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')
           if assertion.length is 1
@@ -461,8 +467,11 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
           encryptedAssertion = signed_dom.getElementsByTagNameNS(XMLNS.SAML, 'EncryptedAssertion')
           if encryptedAssertion.length is 1
             return decrypt_assertion saml_response, sp_private_keys, (err, result) ->
-              return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION) unless err?
-              return cb_wf err
+              try
+                return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION) unless err?
+                return cb_wf err
+              catch parseError
+                return cb_wf parseError
         return cb_wf new Error("Signed data did not contain a SAML Assertion!")
       return cb_wf new Error("SAML Assertion signature check failed! (checked #{idp_certificates.length} certificate(s))")
     (decrypted_assertion, cb_wf) ->
@@ -626,8 +635,11 @@ module.exports.ServiceProvider =
 
         (response_buffer, cb_wf) =>
           debug saml_response
-          saml_response_abnormalized = add_namespaces_to_child_assertions(response_buffer.toString())
-          saml_response = (new xmldom.DOMParser()).parseFromString(saml_response_abnormalized, xmldom.MIME_TYPE.XML_APPLICATION)
+          try
+            saml_response_abnormalized = add_namespaces_to_child_assertions(response_buffer.toString())
+            saml_response = (new xmldom.DOMParser()).parseFromString(saml_response_abnormalized, xmldom.MIME_TYPE.XML_APPLICATION)
+          catch parseError
+            return cb_wf parseError
 
           try
             response = { response_header: parse_response_header(saml_response) }
