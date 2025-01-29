@@ -20,7 +20,7 @@ describe 'saml2', ->
   describe 'private helpers', ->
 
     dom_from_test_file = (filename) ->
-      (new xmldom.DOMParser()).parseFromString get_test_file filename
+      (new xmldom.DOMParser()).parseFromString (get_test_file filename), xmldom.MIME_TYPE.XML_APPLICATION
 
     before =>
       @good_response_dom = dom_from_test_file "good_response.xml"
@@ -29,7 +29,7 @@ describe 'saml2', ->
     describe 'create_authn_request', ->
       it 'contains expected fields', ->
         { id, xml } = saml2.create_authn_request 'https://sp.example.com/metadata.xml', 'https://sp.example.com/assert', 'https://idp.example.com/login'
-        dom = (new xmldom.DOMParser()).parseFromString xml
+        dom = (new xmldom.DOMParser()).parseFromString xml, xmldom.MIME_TYPE.XML_APPLICATION
         authn_request = dom.getElementsByTagName('AuthnRequest')[0]
 
         required_attributes =
@@ -47,7 +47,7 @@ describe 'saml2', ->
 
       it 'contains an AuthnContext if requested', ->
         { id, xml } = saml2.create_authn_request 'a', 'b', 'c', true, { comparison: 'exact', class_refs: ['context:class']}
-        dom = (new xmldom.DOMParser()).parseFromString xml
+        dom = (new xmldom.DOMParser()).parseFromString xml, xmldom.MIME_TYPE.XML_APPLICATION
         authn_request = dom.getElementsByTagName('AuthnRequest')[0]
 
         requested_authn_context = authn_request.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:protocol', 'RequestedAuthnContext')[0]
@@ -69,7 +69,7 @@ describe 'saml2', ->
           [CERT_1],
           [CERT_1, CERT_2])
 
-      dom = (new xmldom.DOMParser()).parseFromString METADATA
+      dom = (new xmldom.DOMParser()).parseFromString METADATA, xmldom.MIME_TYPE.XML_APPLICATION
       entity_descriptor =
         dom.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:metadata', 'EntityDescriptor')[0]
 
@@ -307,7 +307,7 @@ describe 'saml2', ->
     describe 'add_namespaces_to_child_assertions', ->
       it 'adds namespaces defined by InclusiveNamespaces', ->
         response = saml2.add_namespaces_to_child_assertions get_test_file('namespaced_assertion_with_inclusivenamespaces.xml')
-        dom = (new xmldom.DOMParser()).parseFromString response
+        dom = (new xmldom.DOMParser()).parseFromString response, xmldom.MIME_TYPE.XML_APPLICATION
         assertion = dom.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:assertion', 'Assertion')
         attributes = (attr.name for attr in assertion[0].attributes)
         assert.deepEqual attributes, [
@@ -321,7 +321,7 @@ describe 'saml2', ->
 
       it 'copies namespaces from Response to Assertion if there is no InclusiveNamespaces', ->
         response = saml2.add_namespaces_to_child_assertions get_test_file('namespaced_assertion.xml')
-        dom = (new xmldom.DOMParser()).parseFromString response
+        dom = (new xmldom.DOMParser()).parseFromString response, xmldom.MIME_TYPE.XML_APPLICATION
         assertion = dom.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:assertion', 'Assertion')
         attributes = (attr.name for attr in assertion[0].attributes)
         assert.deepEqual attributes, [
@@ -333,7 +333,7 @@ describe 'saml2', ->
 
       it 'copies namespaces from Response to Assertion if there is an empty InclusiveNamespaces', ->
         response = saml2.add_namespaces_to_child_assertions get_test_file('namespaced_assertion_with_empty_inclusivenamespaces.xml')
-        dom = (new xmldom.DOMParser()).parseFromString response
+        dom = (new xmldom.DOMParser()).parseFromString response, xmldom.MIME_TYPE.XML_APPLICATION
         assertion = dom.getElementsByTagNameNS('urn:oasis:names:tc:SAML:2.0:assertion', 'Assertion')
         attributes = (attr.name for attr in assertion[0].attributes)
         assert.deepEqual attributes, [
@@ -1290,7 +1290,7 @@ describe 'saml2', ->
       idp = new saml2.IdentityProvider idp_options
 
       xml = sp.create_authn_request_xml(idp)
-      dom = (new xmldom.DOMParser()).parseFromString xml
+      dom = (new xmldom.DOMParser()).parseFromString xml, xmldom.MIME_TYPE.XML_APPLICATION
       method = dom.getElementsByTagName('SignatureMethod')[0]
       assert.equal method.attributes[0].value, 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
 
@@ -1313,7 +1313,7 @@ describe 'saml2', ->
         signatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 
       xml = sp.create_authn_request_xml(idp, options)
-      dom = (new xmldom.DOMParser()).parseFromString xml
+      dom = (new xmldom.DOMParser()).parseFromString xml, xmldom.MIME_TYPE.XML_APPLICATION
       method = dom.getElementsByTagName('SignatureMethod')[0]
       assert.equal method.attributes[0].value, 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
 

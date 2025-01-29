@@ -242,7 +242,7 @@ decrypt_assertion = (dom, private_keys, cb) ->
 # if the signature is invalid. Comparing the result against null is NOT sufficient for signature checks as it doesn't
 # verify the signature is signing the important content, nor is it preventing the parsing of unsigned content.
 check_saml_signature = (xml, certificate) ->
-  doc = (new xmldom.DOMParser()).parseFromString(xml)
+  doc = (new xmldom.DOMParser()).parseFromString(xml, xmldom.MIME_TYPE.XML_APPLICATION)
 
   # xpath failed to capture <ds:Signature> nodes of direct descendents of the root.
   # Call documentElement to explicitly start from the root element of the document.
@@ -395,7 +395,7 @@ pretty_assertion_attributes = (assertion_attributes) ->
 # used as recommended workaround for xml-crypto library limitation with inclusive namespaces
 # see https://github.com/yaronn/xml-crypto/issues/48#issuecomment-129705816
 add_namespaces_to_child_assertions = (xml_string) ->
-    doc = new xmldom.DOMParser().parseFromString xml_string
+    doc = new xmldom.DOMParser().parseFromString xml_string, xmldom.MIME_TYPE.XML_APPLICATION
 
     response_elements = doc.getElementsByTagNameNS XMLNS.SAMLP, 'Response'
     return xml_string if response_elements.length isnt 1
@@ -440,7 +440,7 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
       # Validate the signature
       debug result
       if ignore_signature
-        return cb_wf null, (new xmldom.DOMParser()).parseFromString(result)
+        return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION)
 
       saml_response_str = saml_response.toString()
       for cert, i in idp_certificates or []
@@ -452,7 +452,7 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
           continue # Cert was not valid, try the next one
 
         for sd in signed_data
-          signed_dom = (new xmldom.DOMParser()).parseFromString(sd)
+          signed_dom = (new xmldom.DOMParser()).parseFromString(sd, xmldom.MIME_TYPE.XML_APPLICATION)
 
           assertion = signed_dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')
           if assertion.length is 1
@@ -461,7 +461,7 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
           encryptedAssertion = signed_dom.getElementsByTagNameNS(XMLNS.SAML, 'EncryptedAssertion')
           if encryptedAssertion.length is 1
             return decrypt_assertion saml_response, sp_private_keys, (err, result) ->
-              return cb_wf null, (new xmldom.DOMParser()).parseFromString(result) unless err?
+              return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION) unless err?
               return cb_wf err
         return cb_wf new Error("Signed data did not contain a SAML Assertion!")
       return cb_wf new Error("SAML Assertion signature check failed! (checked #{idp_certificates.length} certificate(s))")
@@ -627,7 +627,7 @@ module.exports.ServiceProvider =
         (response_buffer, cb_wf) =>
           debug saml_response
           saml_response_abnormalized = add_namespaces_to_child_assertions(response_buffer.toString())
-          saml_response = (new xmldom.DOMParser()).parseFromString(saml_response_abnormalized)
+          saml_response = (new xmldom.DOMParser()).parseFromString(saml_response_abnormalized, xmldom.MIME_TYPE.XML_APPLICATION)
 
           try
             response = { response_header: parse_response_header(saml_response) }
