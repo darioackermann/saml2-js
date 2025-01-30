@@ -226,10 +226,10 @@ describe 'saml2', ->
       KEY_1 = get_test_file("test.pem")
       KEY_2 = get_test_file("test2.pem")
 
-      it 'decrypts and extracts an assertion with all availble keys', (done) =>
+      it 'decrypts and extracts an assertion with all available keys', (done) =>
         saml2.decrypt_assertion @good_response_dom, [KEY_2, KEY_1], (err, result) ->
           assert not err?, "Got error: #{err}"
-          assert.equal result, get_test_file("good_response_decrypted.xml")
+          assert.equal result.xml_string, get_test_file("good_response_decrypted.xml")
           done()
 
       it 'errors if an incorrect key is used', (done) =>

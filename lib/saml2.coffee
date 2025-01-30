@@ -224,25 +224,37 @@ decrypt_assertion = (dom, private_keys, cb) ->
     unless encrypted_data.length is 1
       return cb new Error("Expected 1 EncryptedData inside EncryptedAssertion; found #{encrypted_data.length}.")
 
+    ancestor_namespaces = get_ancestor_namespace_prefixes(encrypted_assertion[0])
+
     encrypted_assertion = encrypted_assertion[0].toString()
     errors = []
     async.eachOfSeries private_keys, (private_key, index, cb_e) ->
-      xmlenc.decrypt encrypted_assertion, {key: format_pem(private_key, 'PRIVATE KEY')}, (err, result) ->
+      xmlenc.decrypt encrypted_assertion, {key: format_pem(private_key, 'PRIVATE KEY')}, (err, xml_string) ->
         if err?
           errors.push new Error("Decrypt failed: #{util.inspect err}") if err?
           return cb_e()
 
         debug "Decryption successful with private key ##{index}."
-        cb null, result
+        cb null, { xml_string, ancestor_namespaces }
     , -> cb new Error("Failed to decrypt assertion with provided key(s): #{util.inspect errors}")
   catch err
     cb new Error("Decrypt failed: #{util.inspect err}")
 
+get_ancestor_namespace_prefixes = (node) ->
+  result = {}
+  while node.parentNode
+    node = node.parentNode
+    if node.attributes
+      for attr in node.attributes
+        if attr.name.startsWith('xmlns:')
+          result[attr.name.slice(6)] = attr.value
+  return result
+
 # This checks the signature of a saml document and returns either array containing the signed data if valid, or null
 # if the signature is invalid. Comparing the result against null is NOT sufficient for signature checks as it doesn't
 # verify the signature is signing the important content, nor is it preventing the parsing of unsigned content.
-check_saml_signature = (xml, certificate) ->
-  doc = (new xmldom.DOMParser()).parseFromString(xml, xmldom.MIME_TYPE.XML_APPLICATION)
+check_saml_signature = (xml, certificate, namespaces) ->
+  doc = (new xmldom.DOMParser({ xmlns: namespaces })).parseFromString(xml, xmldom.MIME_TYPE.XML_APPLICATION)
 
   # xpath failed to capture <ds:Signature> nodes of direct descendents of the root.
   # Call documentElement to explicitly start from the root element of the document.
@@ -435,20 +447,22 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
         assertion = saml_response.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')
         unless assertion.length is 1
           return cb_wf new Error("Expected 1 Assertion or 1 EncryptedAssertion; found #{assertion.length}")
-        cb_wf null, assertion[0].toString()
+        cb_wf null, { xml_string: assertion[0].toString() }
     (result, cb_wf) ->
+      xml_string = result.xml_string
+      ancestor_namespaces = result.ancestor_namespaces
       # Validate the signature
-      debug result
+      debug xml_string
       if ignore_signature
         try
-          return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION)
+          return cb_wf null, (new xmldom.DOMParser({ xmlns: ancestor_namespaces })).parseFromString(xml_string, xmldom.MIME_TYPE.XML_APPLICATION)
         catch parseError
           return cb_wf parseError
 
       saml_response_str = saml_response.toString()
       for cert, i in idp_certificates or []
         try
-          signed_data = check_saml_signature(result, cert) or check_saml_signature saml_response_str, cert
+          signed_data = check_saml_signature(xml_string, cert, ancestor_namespaces) or check_saml_signature(saml_response_str, cert)
         catch ex
           return cb_wf new Error("SAML Assertion signature check failed! (Certificate \##{i+1} may be invalid. #{ex.message}")
         unless signed_data
@@ -467,8 +481,10 @@ parse_authn_response = (saml_response, sp_private_keys, idp_certificates, allow_
           encryptedAssertion = signed_dom.getElementsByTagNameNS(XMLNS.SAML, 'EncryptedAssertion')
           if encryptedAssertion.length is 1
             return decrypt_assertion saml_response, sp_private_keys, (err, result) ->
+              xml_string = result.xml_string
+              ancestor_namespaces = result.ancestor_namespaces
               try
-                return cb_wf null, (new xmldom.DOMParser()).parseFromString(result, xmldom.MIME_TYPE.XML_APPLICATION) unless err?
+                return cb_wf null, (new xmldom.DOMParser({ xmlns: ancestor_namespaces })).parseFromString(xml_string, xmldom.MIME_TYPE.XML_APPLICATION) unless err?
                 return cb_wf err
               catch parseError
                 return cb_wf parseError
