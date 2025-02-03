@@ -1,12 +1,12 @@
 {
   "name": "@darioackermann/saml2-js",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "description": "SAML 2.0 node helpers",
   "author": "darioackermann",
   "license": "Apache-2.0",
   "main": "index.js",
   "engines": {
-    "node": ">=18"
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
   },
   "scripts": {
     "build": "coffee --bare -c -o lib-js lib",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "coffeescript": "^1.12.7",
-    "mocha": "^10.4.0",
+    "mocha": "^11.0.1",
     "nyc": "^17.0.0"
   },
   "dependencies": {
