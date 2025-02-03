@@ -6,8 +6,8 @@
 
 ### Changes
 
-* Updates mocha to `11.0.1` and refactorings of tests, kudos to @martinslota
-* Updates xmldom to `0.9.7`
+* Updates xmldom to `0.9.7` and needed adjustments of libary and tests, kudos to @martinslota 🎉 
+* Updates mocha to `11.0.1`  (@darioackermann) 
 
 # 6.0.0
 
