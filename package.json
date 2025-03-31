@@ -1,6 +1,6 @@
 {
   "name": "@darioackermann/saml2-js",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "description": "SAML 2.0 node helpers",
   "author": "darioackermann",
   "license": "Apache-2.0",
@@ -27,16 +27,16 @@
   },
   "devDependencies": {
     "coffeescript": "^1.12.7",
-    "mocha": "^11.0.1",
-    "nyc": "^17.0.0"
+    "mocha": "^11.2.0",
+    "nyc": "^17.1.0"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.9.7",
-    "async": "^3.2.5",
-    "debug": "^4.3.5",
-    "underscore": "^1.13.6",
-    "xml-crypto": "^6.0.0",
-    "xml-encryption": "^3.0.2",
+    "@xmldom/xmldom": "^0.9.8",
+    "async": "^3.2.6",
+    "debug": "^4.4.0",
+    "underscore": "^1.13.7",
+    "xml-crypto": "^6.0.1",
+    "xml-encryption": "^3.1.0",
     "xmlbuilder2": "^3.1.1",
     "xpath": "^0.0.34"
   },
