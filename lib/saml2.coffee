@@ -355,10 +355,7 @@ get_session_info = (dom, index_required=true) ->
 get_assertion_id = (dom) ->
   assertion = dom.getElementsByTagNameNS(XMLNS.SAML, 'Assertion')
   throw new Error("Expected 1 Assertion; found #{assertion.length}") unless assertion.length is 1
-
-  assertion_id = get_attribute_value assertion[0], 'ID'
-
-  assertion_id
+  get_attribute_value assertion[0], 'ID'
 
 # Takes in an xml @dom of an object containing a SAML Assertion and returns and object containing the attributes
 # contained within the Assertion. It will throw an error if the Assertion is missing or does not appear to be valid.
