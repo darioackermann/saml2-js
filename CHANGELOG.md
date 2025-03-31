@@ -1,3 +1,13 @@
+# 7.1.0
+
+### Features
+* Return Assertion ID as part of the user object (see #25)
+
+### Chores
+* Add test case for `xmldorm.parse` failing in post_assert
+* Addresses a deprecation notice regarding `Buffer` in tests
+* Dependencies updated
+
 # 7.0.0
 
 ### Breaking changes
