@@ -616,7 +616,7 @@ describe 'saml2', ->
         allow_unencrypted_assertion: true
         ignore_timing: true
         request_body:
-          SAMLResponse: new Buffer(get_test_file("no_subject.xml")).toString('base64')
+          SAMLResponse: Buffer.from(get_test_file("no_subject.xml")).toString('base64')
 
       sp = new saml2.ServiceProvider sp_options
       idp = new saml2.IdentityProvider idp_options
